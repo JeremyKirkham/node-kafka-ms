@@ -16,6 +16,8 @@ services:
       - kafka
   store-db:
     image: postgres
+    ports:
+      - "5433:5432"
   store:
     build: ./store
     command: bash -c "npm install && npm start"

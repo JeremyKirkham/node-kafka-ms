@@ -1,5 +1,28 @@
 import app from "../app";
 import * as Kafka from "node-rdkafka";
+import * as avro from "avsc";
+
+const avroType = avro.Type.forSchema({
+  type: 'record',
+  fields: [
+    {name: 'id', type: 'int'},
+    {name: 'uuid', type: 'string'},
+    {name: 'status', type: 'string'}
+  ],
+});
+
+const avroType2 = avro.Type.forSchema({
+  type: 'record',
+  fields: [
+    {name: 'uuid', type: 'string'},
+    {name: 'status', type: 'string'}
+  ],
+});
+
+const producer = new Kafka.Producer({
+  'metadata.broker.list': 'kafka:9092',
+}, {});
+producer.connect({});
 
 const consumer = new Kafka.KafkaConsumer({
   'group.id': 'kafka',
@@ -8,13 +31,30 @@ const consumer = new Kafka.KafkaConsumer({
 consumer.connect({});
 consumer
   .on('ready', function() {
-    console.log('Consumer is ready!');
+    console.log('Payment Consumer is ready!');
     consumer.subscribe(['storeEvent']);
     consumer.consume();
   })
   .on('data', function(data) {
-    console.log('Consumer has received data!');
-    console.log(data.value.toString());
+    const decoded = avroType.fromBuffer(data.value);
+    console.log('Payment Consumer has received data!');
+    decoded.status = 'paymentSuccessful';
+    const buff = avroType2.toBuffer(decoded);
+    setTimeout(function(){
+      try {
+        producer.produce(
+          'paymentEvent',
+          null,
+          buff,
+          null,
+          Date.now(),
+        );
+        console.log('Payment Producer has produced!');
+      } catch (e) {
+        console.log('Error occurred producing a message');
+        console.log(e);
+      }
+    }, 5000);
   });
 
 /**

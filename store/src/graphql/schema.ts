@@ -1,10 +1,49 @@
 const { makeExecutableSchema } = require('graphql-tools');
 import * as Kafka from "node-rdkafka";
+import { createConnection } from "typeorm";
+import "reflect-metadata";
+import { Order } from "../entity/Order";
+import * as uuid from "uuid/v4";
+import * as avro from "avsc";
+
+const avroType = avro.Type.forSchema({
+  type: 'record',
+  fields: [
+    {name: 'id', type: 'int'},
+    {name: 'uuid', type: 'string'},
+    {name: 'status', type: 'string'}
+  ],
+});
+
+const avroType2 = avro.Type.forSchema({
+  type: 'record',
+  fields: [
+    {name: 'uuid', type: 'string'},
+    {name: 'status', type: 'string'}
+  ],
+});
 
 const producer = new Kafka.Producer({
   'metadata.broker.list': 'kafka:9092',
 }, {});
 producer.connect({});
+
+const consumer = new Kafka.KafkaConsumer({
+  'group.id': 'kafka',
+  'metadata.broker.list': 'kafka:9092',
+}, {});
+consumer.connect({});
+consumer
+  .on('ready', function() {
+    console.log('Store Consumer is ready!');
+    consumer.subscribe(['paymentEvent']);
+    consumer.consume();
+  })
+  .on('data', function(data) {
+    const decoded = avroType2.fromBuffer(data.value);
+    console.log('Store Consumer has received data!');
+    console.log(decoded);
+  });
 
 interface ctx {
 };
@@ -47,25 +86,31 @@ const resolvers = {
   },
   Mutation: {
     createOrder(obj: any, { status }: { status: string }, context: ctx) {
-      try {
-        producer.produce(
-          'storeEvent',
-          null,
-          Buffer.from(status, 'utf-8'),
-          null,
-          Date.now(),
-        );
-        console.log('Producer has produced!');
-        return {
-          success: true,
-        };
-      } catch (err) {
-        console.error('A problem occurred when sending our message');
-        console.error(err);
-        return {
-          success: false,
-        };
-      }
+      createConnection().then(async connection => {
+        let order = new Order();
+        order.uuid = uuid();
+        order.status = status;
+        let orderRepository = connection.getRepository(Order);
+        await orderRepository.save(order);
+        await connection.close();
+        const buff = avroType.toBuffer(order);
+        try {
+          producer.produce(
+            'storeEvent',
+            null,
+            buff,
+            null,
+            Date.now(),
+          );
+          console.log('Store Producer has produced!');
+        } catch (e) {
+          console.log('Error occurred producing a message');
+          console.log(e);
+        }
+      });
+      return {
+        success: true,
+      };
     },
   },
 };
