@@ -8,9 +8,9 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "lib": [
-     "esnext.asynciterable",
-     "ES2015"
-   ]
+      "ES2015",
+      "esnext.asynciterable"
+    ]
   },
   "include": [
     "src/**/*"
