@@ -1,0 +1,25 @@
+version: "3"
+services:
+  kafka:
+    image: heroku/kafka:latest
+    ports:
+      - "2181:2181"
+      - "9092:9092"
+  payment:
+    build: ./payment
+    command: bash -c "npm install && npm start"
+    volumes:
+      - ./payment:/usr/src/app
+    ports:
+      - "3001:3001"
+    depends_on:
+      - kafka
+  store:
+    build: ./store
+    command: bash -c "npm install && npm start"
+    volumes:
+      - ./store:/usr/src/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - kafka

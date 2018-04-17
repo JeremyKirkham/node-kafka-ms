@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "module": "commonjs",
+    "moduleResolution": "Node",
+    "target": "es5",
+    "outDir": "dist",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "lib": [
+     "esnext.asynciterable",
+     "ES2015"
+   ]
+  },
+  "include": [
+    "src/**/*"
+  ]
+}
