@@ -1,12 +1,5 @@
 version: "3"
 services:
-  ui:
-    build: ./ui
-    command: bash -c "npm install && npm start"
-    ports:
-      - "4200:4200"
-    depends_on:
-      - store
   kafka:
     image: heroku/kafka:latest
     ports:
@@ -35,3 +28,12 @@ services:
     depends_on:
       - kafka
       - store-db
+  ui:
+    build: ./ui
+    command: bash -c "npm install && npm start"
+    volumes:
+      - ./ui:/usr/src/app
+    ports:
+      - "4200:4200"
+    depends_on:
+      - store
