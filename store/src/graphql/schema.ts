@@ -5,6 +5,15 @@ import "reflect-metadata";
 import { Order } from "../entity/Order";
 import * as uuid from "uuid/v4";
 import * as avro from "avsc";
+import { KafkaPubSub } from 'graphql-kafka-subscriptions';
+import { PubSub, withFilter } from 'graphql-subscriptions';
+
+const ORDER_ADDED_TOPIC = 'orderAdded';
+const pubsub = new KafkaPubSub({
+  topic: ORDER_ADDED_TOPIC,
+  host: 'kafka',
+  port: '9092',
+})
 
 const avroType = avro.Type.forSchema({
   type: 'record',
@@ -65,12 +74,17 @@ const typeDefs = `
   type Mutation {
     createOrder(status: String): Status
   }
+  type Subscription {
+    # Subscription fires on every comment added
+    orderAdded(status: String): Order
+  }
   type Status {
     success: String
   }
   schema {
     query: Query
     mutation: Mutation
+    subscription: Subscription
   }
 `;
 
@@ -103,6 +117,13 @@ const resolvers = {
             null,
             Date.now(),
           );
+          pubsub.publish({
+            ORDER_ADDED_TOPIC,
+            orderAdded: {
+              uuid: order.uuid,
+              status: order.status,
+            },
+          });
           console.log('Store Producer has produced!');
         } catch (e) {
           console.log('Error occurred producing a message');
@@ -112,6 +133,13 @@ const resolvers = {
       return {
         success: true,
       };
+    },
+  },
+  Subscription: {
+    orderAdded: {
+      subscribe: withFilter(() => pubsub.asyncIterator(ORDER_ADDED_TOPIC), (payload, args) => {
+        return payload.orderAdded.topic === args.topic;
+      }),
     },
   },
 };

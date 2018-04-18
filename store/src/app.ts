@@ -15,6 +15,7 @@ app.use('/graphql', cors(), bodyParser.json(), graphqlExpress({
 
 app.use('/graphiql', graphiqlExpress({
   endpointURL: '/graphql',
+  subscriptionsEndpoint: `ws://localhost:${port}/subscriptions`
 }));
 
 // Express configuration

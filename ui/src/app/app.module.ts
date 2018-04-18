@@ -9,7 +9,9 @@ import { ApolloLink } from 'apollo-link';
 import { HttpLink, HttpLinkModule } from 'apollo-angular-link-http';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { HttpHeaders } from '@angular/common/http';
-
+import { WebSocketLink } from 'apollo-link-ws';
+import { split } from 'apollo-link';
+import { getMainDefinition } from 'apollo-utilities';
 
 const endpoint = 'http://localhost:3000/graphql';
 
@@ -36,8 +38,23 @@ export class AppModule {
       headers: new HttpHeaders()
         .set('Content-Type', 'application/json')
     });
+    const WS_LINK = new WebSocketLink({
+      uri: `ws://localhost:3000/subscriptions`,
+      options: {
+        reconnect: true
+      }
+    });
+
+    const LINK = split(
+      ({ query }) => {
+        const definition = getMainDefinition(query);
+        return definition.kind === 'OperationDefinition' && definition.operation === 'subscription';
+      },
+      WS_LINK,
+      HTTP_LINK,
+    );
     apollo.create({
-      link: HTTP_LINK,
+      link: LINK,
       cache: new InMemoryCache()
     });
   }

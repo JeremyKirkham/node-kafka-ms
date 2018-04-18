@@ -1,15 +1,25 @@
 import app from "../app";
+import { SubscriptionServer } from 'subscriptions-transport-ws';
+import { execute, subscribe } from 'graphql';
+import { createServer } from 'http';
+import { myGraphQLSchema as schema } from '../graphql/schema';
+
+const port = 3000;
 
 /**
  * Start Express server.
  */
-const server = app.listen(app.get("port"), () => {
-  console.log(
-    "  App is running at http://localhost:%d in %s mode",
-    app.get("port"),
-    app.get("env")
-  );
-  console.log("  Press CTRL-C to stop\n");
-});
-
-export default server;
+ // Wrap the Express server
+ const ws = createServer(app);
+ ws.listen(port, () => {
+   console.log(`Apollo Server is now running on http://localhost:${port}`);
+   // Set up the WebSocket for handling GraphQL subscriptions
+   new SubscriptionServer({
+     execute,
+     subscribe,
+     schema
+   }, {
+     server: ws,
+     path: '/subscriptions',
+   });
+ });
