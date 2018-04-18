@@ -42,23 +42,17 @@ consumer
   .on('data', function(data) {
     const decoded = avroType2.fromBuffer(data.value);
     console.log('Store Consumer has received data!');
-    console.log(decoded);
+    createConnection().then(async connection => {
+      let orderRepository = connection.getRepository(Order);
+      let order = await orderRepository.findOne({uuid: decoded.uuid });
+      order.status = decoded.status;
+      await orderRepository.save(order);
+      await connection.close();
+    });
   });
 
 interface ctx {
 };
-
-// Some fake data
-const orders = [
-  {
-    uuid: "abc-123",
-    status: "pending",
-  },
-  {
-    uuid: "def-456",
-    status: "pending",
-  },
-];
 
 const typeDefs = `
   type Order {
@@ -82,7 +76,14 @@ const typeDefs = `
 
 const resolvers = {
   Query: {
-    orders: () => orders,
+    orders: () => {
+      return createConnection().then(async connection => {
+        let orderRepository = connection.getRepository(Order);
+        const orders = await orderRepository.find();
+        await connection.close();
+        return orders;
+      });
+    },
   },
   Mutation: {
     createOrder(obj: any, { status }: { status: string }, context: ctx) {

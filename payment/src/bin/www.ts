@@ -38,7 +38,16 @@ consumer
   .on('data', function(data) {
     const decoded = avroType.fromBuffer(data.value);
     console.log('Payment Consumer has received data!');
-    decoded.status = 'paymentSuccessful';
+    if (decoded.status != 'pending') {
+      console.log('No payment required');
+      return;
+    }
+
+    const paymentStatus: string[] = [
+      'paymentSuccessful',
+      'paymentFailed',
+    ];
+    decoded.status = paymentStatus[Math.floor(Math.random() * paymentStatus.length)];
     const buff = avroType2.toBuffer(decoded);
     setTimeout(function(){
       try {
