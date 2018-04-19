@@ -9,7 +9,6 @@ import { consumer } from './index';
 
 consumer
   .on('data', function(data) {
-    console.log('PendingOrders has received data!');
     const decoded = avroType.fromBuffer(data.value);
     if (decoded.status != PENDING_STATUS) {
       return;

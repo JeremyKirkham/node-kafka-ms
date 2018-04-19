@@ -35,8 +35,8 @@ const typeDefs = `
     createOrder(status: String!): Status!
   }
   type Subscription {
-    # Subscription fires on every comment added
-    orderAdded(status: String): Order!
+    orderAdded: Order!
+    orderUpdated: Order!
   }
   type Status {
     success: String!
@@ -73,7 +73,6 @@ const resolvers = {
           null,
           Date.now(),
         );
-        console.log('Store Producer has produced!');
         return {
           success: true,
         };
@@ -89,7 +88,12 @@ const resolvers = {
   Subscription: {
     orderAdded: {
       subscribe: withFilter(() => pubsub.asyncIterator(ORDER_PUBSUB_TOPIC), (payload, args) => {
-        return payload.orderAdded.topic === args.topic;
+        return payload.hasOwnProperty('orderAdded')
+      }),
+    },
+    orderUpdated: {
+      subscribe: withFilter(() => pubsub.asyncIterator(ORDER_PUBSUB_TOPIC), (payload, args) => {
+        return payload.hasOwnProperty('orderUpdated');
       }),
     },
   },

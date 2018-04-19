@@ -27,7 +27,6 @@ consumer
     consumer.consume();
   })
   .on('data', function(data) {
-    console.log('Payment Consumer has received data!');
     const decoded = avroType2.fromBuffer(data.value);
     if (decoded.status != 'awaitingPayment') {
       return;
@@ -48,7 +47,6 @@ consumer
           null,
           Date.now(),
         );
-        console.log('Payment Producer has produced!');
       } catch (e) {
         console.log('Error occurred producing a message');
         console.log(e);

@@ -48,18 +48,38 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.subscribeToNewOrders();
+    this.subscribeToUpdatedOrders();
   }
 
   subscribeToNewOrders() {
     this.ordersQuery.subscribeToMore({
       document: SUBSCRIPTION_ADDED,
       updateQuery: (prev: any, {subscriptionData}) => {
-        if (!subscriptionData.data) {
+        if (!subscriptionData.data || !subscriptionData.data.hasOwnProperty('orderAdded')) {
           return prev;
         }
         const newOrderItem = subscriptionData.data.orderAdded;
         return Object.assign({}, prev, {
           orders: [...prev.orders, newOrderItem]
+        });
+      }
+    });
+  }
+
+  subscribeToUpdatedOrders() {
+    this.ordersQuery.subscribeToMore({
+      document: SUBSCRIPTION_UPDATED,
+      updateQuery: (prev: any, {subscriptionData}) => {
+        if (!subscriptionData.data || !subscriptionData.data.hasOwnProperty('orderUpdated')) {
+          return prev;
+        }
+        const updatedOrderItem = subscriptionData.data.orderUpdated;
+
+        const excluding = prev.orders.filter((o) => {
+          return o.uuid !== updatedOrderItem.uuid;
+        });
+        return Object.assign({}, prev, {
+          orders: [...excluding, updatedOrderItem]
         });
       }
     });

@@ -3,7 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   AfterInsert,
-  AfterUpdate
+  AfterUpdate,
 } from "typeorm";
 import { ORDER_PUBSUB_TOPIC, pubsub } from '../app';
 import { STORE_EVENT } from '../consumers';
@@ -27,7 +27,7 @@ export class Order {
   status: string;
 
   @AfterInsert()
-  publish() {
+  publishAdd() {
     pubsub.publish({
       ORDER_PUBSUB_TOPIC,
       orderAdded: {
@@ -45,10 +45,20 @@ export class Order {
         null,
         Date.now(),
       );
-      console.log('Store Producer has produced!');
     } catch (e) {
       console.log('Error occurred producing a message');
       console.log(e);
     }
+  }
+
+  @AfterUpdate()
+  publishUpdate() {
+    pubsub.publish({
+      ORDER_PUBSUB_TOPIC,
+      orderUpdated: {
+        uuid: this.uuid,
+        status: this.status,
+      },
+    });
   }
 }

@@ -9,7 +9,6 @@ import { consumer } from './index';
 
 consumer
   .on('data', function(data) {
-    console.log('PaymentUpdate has received data!');
     const decoded = avroType.fromBuffer(data.value);
     if (decoded.status != PAYMENT_SUCCESSFUL_STATUS && decoded.status != PAYMENT_FAILED_STATUS) {
       return;
