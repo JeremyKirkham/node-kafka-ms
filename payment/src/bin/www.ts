@@ -20,6 +20,23 @@ const consumer = new Kafka.KafkaConsumer({
   'metadata.broker.list': 'kafka:9092',
 }, {});
 consumer.connect({});
+
+enum paymentStatus {
+  'paymentFailed',
+  'paymentSuccessful',
+};
+
+function getRandomInt(min: number, max: number): number {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function getRandomStatus(): string {
+  return paymentStatus[getRandomInt(0, 2)];
+}
+
+
 consumer
   .on('ready', function() {
     console.log('Payment Consumer is ready!');
@@ -31,12 +48,7 @@ consumer
     if (decoded.status != 'awaitingPayment') {
       return;
     }
-
-    const paymentStatus: string[] = [
-      'paymentSuccessful',
-      'paymentFailed',
-    ];
-    decoded.status = paymentStatus[Math.floor(Math.random() * paymentStatus.length)];
+    decoded.status = getRandomStatus();
     const buff = avroType.toBuffer(decoded);
     setTimeout(function(){
       try {
