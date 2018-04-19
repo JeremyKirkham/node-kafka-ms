@@ -2,7 +2,7 @@ import app from "../app";
 import * as Kafka from "node-rdkafka";
 import * as avro from "avsc";
 
-const avroType2 = avro.Type.forSchema({
+const avroType = avro.Type.forSchema({
   type: 'record',
   fields: [
     {name: 'uuid', type: 'string'},
@@ -27,7 +27,7 @@ consumer
     consumer.consume();
   })
   .on('data', function(data) {
-    const decoded = avroType2.fromBuffer(data.value);
+    const decoded = avroType.fromBuffer(data.value);
     if (decoded.status != 'awaitingPayment') {
       return;
     }
@@ -37,7 +37,7 @@ consumer
       'paymentFailed',
     ];
     decoded.status = paymentStatus[Math.floor(Math.random() * paymentStatus.length)];
-    const buff = avroType2.toBuffer(decoded);
+    const buff = avroType.toBuffer(decoded);
     setTimeout(function(){
       try {
         producer.produce(

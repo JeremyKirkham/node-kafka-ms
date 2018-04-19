@@ -8,7 +8,7 @@ import {
 import { ORDER_PUBSUB_TOPIC, pubsub } from '../app';
 import { STORE_EVENT } from '../consumers';
 import { producer } from '../producers';
-import { avroType } from '../graphql/schema';
+import { ORDER_TYPE } from '../messages';
 
 export const PENDING_STATUS = 'pending';
 export const AWAITING_PAYMENT_STATUS = 'awaitingPayment';
@@ -37,7 +37,7 @@ export class Order {
     });
     try {
       this.status = AWAITING_PAYMENT_STATUS;
-      const buff = avroType.toBuffer(this);
+      const buff = ORDER_TYPE.toBuffer(this);
       producer.produce(
         STORE_EVENT,
         null,

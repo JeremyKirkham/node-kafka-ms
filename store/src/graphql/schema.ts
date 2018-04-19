@@ -2,7 +2,6 @@ const { makeExecutableSchema } = require('graphql-tools');
 import { createConnection } from "typeorm";
 import "reflect-metadata";
 import * as uuid from "uuid/v4";
-import * as avro from "avsc";
 import {
   Order,
   PENDING_STATUS,
@@ -11,14 +10,7 @@ import { PubSub, withFilter } from 'graphql-subscriptions';
 import { producer } from '../producers';
 import { STORE_EVENT } from '../consumers';
 import { ORDER_PUBSUB_TOPIC, pubsub } from '../app';
-
-export const avroType = avro.Type.forSchema({
-  type: 'record',
-  fields: [
-    {name: 'uuid', type: 'string'},
-    {name: 'status', type: 'string'}
-  ],
-});
+import { ORDER_TYPE } from '../messages';
 
 interface ctx {
 };
@@ -64,7 +56,7 @@ const resolvers = {
       let order = new Order();
       order.uuid = uuid();
       order.status = PENDING_STATUS;
-      const buff = avroType.toBuffer(order);
+      const buff = ORDER_TYPE.toBuffer(order);
       try {
         producer.produce(
           STORE_EVENT,

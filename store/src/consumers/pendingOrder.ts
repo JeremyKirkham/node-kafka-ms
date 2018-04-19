@@ -4,12 +4,12 @@ import {
   PENDING_STATUS,
   AWAITING_PAYMENT_STATUS
 } from "../entity/Order";
-import { avroType } from '../graphql/schema';
+import { ORDER_TYPE } from '../messages';
 import { consumer } from './index';
 
 consumer
   .on('data', function(data) {
-    const decoded = avroType.fromBuffer(data.value);
+    const decoded = ORDER_TYPE.fromBuffer(data.value);
     if (decoded.status != PENDING_STATUS) {
       return;
     }
