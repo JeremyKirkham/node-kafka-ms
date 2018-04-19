@@ -15,7 +15,7 @@ services:
     depends_on:
       - kafka
   store-db:
-    image: postgres
+    image: postgres:10
     ports:
       - "5433:5432"
   store:

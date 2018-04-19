@@ -36,7 +36,6 @@ const SUBSCRIPTION_UPDATED = gql`
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  title = 'app';
   ordersQuery: QueryRef<any>;
   data: Observable<any>;
   constructor(apollo: Apollo) {
@@ -58,11 +57,9 @@ export class AppComponent implements OnInit {
         if (!subscriptionData.data) {
           return prev;
         }
-
         const newOrderItem = subscriptionData.data.orderAdded;
-
         return Object.assign({}, prev, {
-          orders: [newOrderItem, ...prev.orders]
+          orders: [...prev.orders, newOrderItem]
         });
       }
     });

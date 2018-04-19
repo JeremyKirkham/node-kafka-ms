@@ -2,15 +2,6 @@ import app from "../app";
 import * as Kafka from "node-rdkafka";
 import * as avro from "avsc";
 
-const avroType = avro.Type.forSchema({
-  type: 'record',
-  fields: [
-    {name: 'id', type: 'int'},
-    {name: 'uuid', type: 'string'},
-    {name: 'status', type: 'string'}
-  ],
-});
-
 const avroType2 = avro.Type.forSchema({
   type: 'record',
   fields: [
@@ -25,7 +16,7 @@ const producer = new Kafka.Producer({
 producer.connect({});
 
 const consumer = new Kafka.KafkaConsumer({
-  'group.id': 'kafka',
+  'group.id': 'kafka-payment',
   'metadata.broker.list': 'kafka:9092',
 }, {});
 consumer.connect({});
@@ -36,9 +27,9 @@ consumer
     consumer.consume();
   })
   .on('data', function(data) {
-    const decoded = avroType.fromBuffer(data.value);
     console.log('Payment Consumer has received data!');
-    if (decoded.status != 'pending') {
+    const decoded = avroType2.fromBuffer(data.value);
+    if (decoded.status != 'awaitingPayment') {
       console.log('No payment required');
       return;
     }
