@@ -6,7 +6,6 @@ import * as avro from "avsc";
 import {
   Order,
   PENDING_STATUS,
-  AWAITING_PAYMENT_STATUS,
 } from "../entity/Order";
 import { PubSub, withFilter } from 'graphql-subscriptions';
 import { producer } from '../producers';
@@ -64,7 +63,7 @@ const resolvers = {
     createOrder(obj: any, { status }: { status: string }, context: ctx) {
       let order = new Order();
       order.uuid = uuid();
-      order.status = AWAITING_PAYMENT_STATUS;
+      order.status = PENDING_STATUS;
       const buff = avroType.toBuffer(order);
       try {
         producer.produce(

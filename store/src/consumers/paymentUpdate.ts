@@ -1,24 +1,23 @@
 import { createConnection } from "typeorm";
 import {
   Order,
-  PENDING_STATUS,
-  AWAITING_PAYMENT_STATUS
+  PAYMENT_SUCCESSFUL_STATUS,
+  PAYMENT_FAILED_STATUS,
 } from "../entity/Order";
 import { avroType } from '../graphql/schema';
 import { consumer } from './index';
 
 consumer
   .on('data', function(data) {
-    console.log('Store Consumer has received data!');
+    console.log('PaymentUpdate has received data!');
     const decoded = avroType.fromBuffer(data.value);
-    if (decoded.status != AWAITING_PAYMENT_STATUS) {
+    if (decoded.status != PAYMENT_SUCCESSFUL_STATUS && decoded.status != PAYMENT_FAILED_STATUS) {
       return;
     }
     createConnection().then(async connection => {
-      let order = new Order();
-      order.uuid = decoded.uuid;
-      order.status = decoded.status;
       let orderRepository = connection.getRepository(Order);
+      let order = await orderRepository.findOne({uuid: decoded.uuid});
+      order.status = decoded.status;
       await orderRepository.save(order);
       await connection.close();
     });

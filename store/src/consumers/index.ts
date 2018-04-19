@@ -11,4 +11,5 @@ export const consumer = new Kafka.KafkaConsumer({
     consumer.consume();
   });
 
-export * from './pendingOrders';
+export * from './pendingOrder';
+export * from './paymentUpdate';

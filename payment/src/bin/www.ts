@@ -30,7 +30,6 @@ consumer
     console.log('Payment Consumer has received data!');
     const decoded = avroType2.fromBuffer(data.value);
     if (decoded.status != 'awaitingPayment') {
-      console.log('No payment required');
       return;
     }
 

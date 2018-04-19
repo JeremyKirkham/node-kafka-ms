@@ -6,6 +6,9 @@ import {
   AfterUpdate
 } from "typeorm";
 import { ORDER_PUBSUB_TOPIC, pubsub } from '../app';
+import { STORE_EVENT } from '../consumers';
+import { producer } from '../producers';
+import { avroType } from '../graphql/schema';
 
 export const PENDING_STATUS = 'pending';
 export const AWAITING_PAYMENT_STATUS = 'awaitingPayment';
@@ -32,5 +35,20 @@ export class Order {
         status: this.status,
       },
     });
+    try {
+      this.status = AWAITING_PAYMENT_STATUS;
+      const buff = avroType.toBuffer(this);
+      producer.produce(
+        STORE_EVENT,
+        null,
+        buff,
+        null,
+        Date.now(),
+      );
+      console.log('Store Producer has produced!');
+    } catch (e) {
+      console.log('Error occurred producing a message');
+      console.log(e);
+    }
   }
 }
