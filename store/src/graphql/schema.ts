@@ -32,7 +32,7 @@ const typeDefs = `
     orders: [Order!]!
   }
   type Mutation {
-    createOrder(status: String!): Status!
+    createOrder: Status!
   }
   type Subscription {
     orderAdded: Order!
@@ -60,7 +60,7 @@ const resolvers = {
     },
   },
   Mutation: {
-    createOrder(obj: any, { status }: { status: string }, context: ctx) {
+    createOrder(obj: any, args: any, context: ctx) {
       let order = new Order();
       order.uuid = uuid();
       order.status = PENDING_STATUS;

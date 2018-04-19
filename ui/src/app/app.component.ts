@@ -74,12 +74,10 @@ export class AppComponent implements OnInit {
           return prev;
         }
         const updatedOrderItem = subscriptionData.data.orderUpdated;
-
-        const excluding = prev.orders.filter((o) => {
-          return o.uuid !== updatedOrderItem.uuid;
-        });
         return Object.assign({}, prev, {
-          orders: [...excluding, updatedOrderItem]
+          orders: prev.orders.map(el => {
+            return el.uuid === updatedOrderItem.uuid ? updatedOrderItem : el;
+          })
         });
       }
     });
