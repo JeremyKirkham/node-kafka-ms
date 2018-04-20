@@ -19,6 +19,8 @@ const typeDefs = `
   type Order {
     uuid: String!
     status: String!
+    created: String!
+    updated: String!
   }
   type Query {
     orders: [Order!]!

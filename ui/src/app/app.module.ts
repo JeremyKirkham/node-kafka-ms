@@ -13,6 +13,13 @@ import { WebSocketLink } from 'apollo-link-ws';
 import { split } from 'apollo-link';
 import { getMainDefinition } from 'apollo-utilities';
 
+// Material stuff
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatTableModule } from '@angular/material';
+
+// Moment
+import { MomentModule } from 'ngx-moment';
+
 const endpoint = 'http://localhost:3000/graphql';
 
 @NgModule({
@@ -24,6 +31,9 @@ const endpoint = 'http://localhost:3000/graphql';
     HttpClientModule,
     ApolloModule,
     HttpLinkModule,
+    BrowserAnimationsModule,
+    MatTableModule,
+    MomentModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

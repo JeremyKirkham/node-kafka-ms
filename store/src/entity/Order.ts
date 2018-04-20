@@ -2,6 +2,8 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   AfterInsert,
   AfterUpdate,
 } from "typeorm";
@@ -26,6 +28,12 @@ export class Order {
   @Column()
   status: string;
 
+  @CreateDateColumn()
+  created: Date;
+
+  @UpdateDateColumn()
+  updated: Date;
+
   @AfterInsert()
   publishAdd() {
     pubsub.publish({
@@ -33,6 +41,8 @@ export class Order {
       orderAdded: {
         uuid: this.uuid,
         status: this.status,
+        created: this.created,
+        updated: this.updated,
       },
     });
     try {
@@ -58,6 +68,8 @@ export class Order {
       orderUpdated: {
         uuid: this.uuid,
         status: this.status,
+        created: this.created,
+        updated: this.updated,
       },
     });
   }

@@ -2,33 +2,55 @@ import { Component, OnInit } from '@angular/core';
 import gql from 'graphql-tag';
 import { Apollo, QueryRef } from 'apollo-angular';
 import { Observable } from 'rxjs/Observable';
+import { MatTableDataSource } from '@angular/material';
+
+const FRAGMENT = gql`
+  fragment orderParts on Order {
+    uuid
+    status
+    created
+    updated
+  }
+`;
 
 const QUERY = gql`
   query {
     orders {
-      uuid
-      status
+      ...orderParts
     }
   }
+  ${FRAGMENT}
 `;
 
 const SUBSCRIPTION_ADDED = gql`
-    subscription {
-      orderAdded {
-        uuid
-        status
-      }
+  subscription {
+    orderAdded {
+      ...orderParts
     }
+  }
+  ${FRAGMENT}
 `;
 
 const SUBSCRIPTION_UPDATED = gql`
-    subscription {
-      orderUpdated {
-        uuid
-        status
-      }
+  subscription {
+    orderUpdated {
+      ...orderParts
     }
+  }
+  ${FRAGMENT}
 `;
+
+interface Order {
+  uuid: string;
+  status: string;
+  created: Date;
+  updated: Date;
+}
+
+interface QueryResult {
+  orders: Order[];
+}
+
 
 @Component({
   selector: 'app-root',
@@ -36,17 +58,20 @@ const SUBSCRIPTION_UPDATED = gql`
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  ordersQuery: QueryRef<any>;
-  data: Observable<any>;
+  ordersQuery: QueryRef<QueryResult>;
+  displayedColumns = ['uuid', 'status', 'created', 'updated'];
+  dataSource = new MatTableDataSource();
+
   constructor(apollo: Apollo) {
     this.ordersQuery = apollo.watchQuery({
       query: QUERY
     });
-
-    this.data = this.ordersQuery.valueChanges;
   }
 
   ngOnInit() {
+    this.ordersQuery.valueChanges.subscribe(data => {
+      this.dataSource = new MatTableDataSource(data.data.orders);
+    });
     this.subscribeToNewOrders();
     this.subscribeToUpdatedOrders();
   }
