@@ -36,15 +36,7 @@ export class Order {
 
   @AfterInsert()
   publishAdd() {
-    pubsub.publish({
-      ORDER_PUBSUB_TOPIC,
-      orderAdded: {
-        uuid: this.uuid,
-        status: this.status,
-        created: this.created,
-        updated: this.updated,
-      },
-    });
+    this.graphqlPush("orderAdded");
     try {
       this.status = AWAITING_PAYMENT_STATUS;
       const buff = ORDER_TYPE.toBuffer(this);
@@ -63,14 +55,13 @@ export class Order {
 
   @AfterUpdate()
   publishUpdate() {
+    this.graphqlPush("orderUpdated");
+  }
+
+  private graphqlPush(method: string) {
     pubsub.publish({
       ORDER_PUBSUB_TOPIC,
-      orderUpdated: {
-        uuid: this.uuid,
-        status: this.status,
-        created: this.created,
-        updated: this.updated,
-      },
+      [method]: this,
     });
   }
 }
